@@ -11,6 +11,8 @@ public class Wczytywanie implements Serializable {
         this.komendy=komendy;
     }
 
+    Wczytywanie(){};
+
 
 
     public void zapis(){
@@ -51,6 +53,18 @@ public class Wczytywanie implements Serializable {
         }
         o.close();
 
+
+    }
+
+    public void czyszczenie(){
+        try{
+            z=new ObjectOutputStream(new FileOutputStream("komendy.txt"));
+            z.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 

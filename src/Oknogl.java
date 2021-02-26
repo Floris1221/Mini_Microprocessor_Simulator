@@ -1,11 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
+import java.text.NumberFormat;
 
-public class Oknogl extends JFrame implements ActionListener {
-    public JLabel background;
+public class Oknogl extends JFrame implements ActionListener{
+    public static JLabel background;
     static JButton Wpisz1, Wpisz2, Wpisz3, Wpisz4,wykonaj_krok,wykonaj_program,zapisz_program,wczytaj_program;
     JButton wRozkaz= new JButton("Wykonaj rozkaz");
     JButton zRozkaz= new JButton("Zapisz rozkaz");
@@ -13,17 +14,20 @@ public class Oknogl extends JFrame implements ActionListener {
     Zadanie [] komendy = new Zadanie[30];
     static int nr_komendy_zapis = 0;
     static int nr_komendy_wykonanie=0;
-
+  public static int dataSize = 1024 * 1024;
 
     static JTextField tekst[][]= new JTextField[5][3];
     public JLabel etykiety[][]= new JLabel[4][13];
     public JRadioButton rb[][]= new JRadioButton[2][81];
-    JTextArea textarea;
+  static  JTextArea textarea,textarea2;
 
     JComboBox cb,cb1,cb2,cb3;
     int zmienna1,zmienna2,decimalA,decimalB,decimalC,decimalD;
+    String sx="x";
+
 
     Oknogl(){
+
 
         setSize(1444,878);
         setLayout(null);
@@ -32,26 +36,61 @@ public class Oknogl extends JFrame implements ActionListener {
         background= new JLabel("",img,JLabel.CENTER);
         background.setBounds(0,0,1544,966);
         add(background);
+        background.setFocusable(true);
+        background.requestFocus();
 
 
+        background.addKeyListener(new KeyAdapter(){
+        public void keyPressed(KeyEvent ke){
+
+          if(sx.equals("09H"))
+            textarea2.setText("Key value in ASCII is :" +ke.getKeyCode());
+        }
+    });
 
        Radiobuttons();
         etykiety();
         Przyciski();
         comboboxes();
 
-
-
         Wpisz1.doClick();
         Wpisz2.doClick();
         Wpisz3.doClick();
         Wpisz4.doClick();
+
+
+
         setVisible(true);
     }
 
+
+
+    public static String DiskInfo() {
+
+        File[] roots = File.listRoots();
+        StringBuilder sb = new StringBuilder();
+textarea2.setFont(new Font("Calibri",Font.PLAIN,12));
+
+        for (File root : roots) {
+            sb.append("File system root: ");
+            sb.append(root.getAbsolutePath());
+            sb.append("\n");
+            sb.append("Total space (MB): ");
+            sb.append(root.getTotalSpace()/dataSize);
+            sb.append("\n");
+            sb.append("Free space (MB): ");
+            sb.append(root.getFreeSpace()/dataSize);
+            sb.append("\n");
+
+        }
+        return sb.toString();
+    }
+
+
+
     private void comboboxes(){
 
-        String[] funkcja = { "MOV", "ADD", "SUB" };
+        String[] funkcja = { "MOV", "ADD", "SUB", "PUSH", "POP","10H01H","13H08H","09H","12H","10H02H","10H13H","13H00H","1AH00H" };
         cb=new JComboBox(funkcja);
         cb.setBounds(273,730,70,30);
         background.add(cb);
@@ -152,9 +191,18 @@ public class Oknogl extends JFrame implements ActionListener {
 
 
         textarea=new JTextArea("");
+        textarea2=new JTextArea("");
+        textarea.setEnabled(false);
+        textarea2.setEnabled(false);
         textarea.setBounds(800,10,600,650);
         textarea.setFont(new Font("Calibri",Font.BOLD,18));
         background.add(textarea);
+
+        textarea2.setBounds(490,500,290,155);
+        textarea2.setFont(new Font("Calibri",Font.BOLD,18));
+        background.add(textarea2);
+        textarea2.setBackground(Color.BLACK);
+        textarea2.setForeground(Color.WHITE);
 
 
         for(int i=0;i<2;i++){
@@ -326,6 +374,10 @@ public class Oknogl extends JFrame implements ActionListener {
         zapisz_program.addActionListener(this);
         wczytaj_program.addActionListener(this);
 
+
+
+
+
         Wpisz1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -358,6 +410,7 @@ public class Oknogl extends JFrame implements ActionListener {
                 }
             }
         });
+
 
         Wpisz2.addActionListener(new ActionListener() {
             @Override
@@ -477,11 +530,13 @@ public class Oknogl extends JFrame implements ActionListener {
  
          if(zrodlo==wRozkaz) {
 
-
-            String s = (String) cb.getSelectedItem();
+             String s = (String) cb.getSelectedItem();
             String s2 = (String) cb2.getSelectedItem();
             String s1 = (String) cb1.getSelectedItem();
             String s3 = (String) cb3.getSelectedItem();
+
+            sx=s;
+             System.out.println(sx);
 
             switch (s1) {
                 case "A":
@@ -517,29 +572,35 @@ public class Oknogl extends JFrame implements ActionListener {
 
             Zadanie z = new Zadanie(s1, s2, s, s3);
             z.wykonaj_operacje();
+           // z.pop();
 
             tekst[2][0].setText(z.pokonwersjiH);
             tekst[2][1].setText(z.pokonwersjiL);
+try {
+    int[] rejestr_natychmiastowy = new int[22];
+    char[] rejestr_char_nH = tekst[2][0].getText().toCharArray();
+    char[] rejestr_char_nL = tekst[2][1].getText().toCharArray();
+    for (int i = 0; i < 16; i++) {
+        if (i < 7)
+            rejestr_natychmiastowy[i] = Character.getNumericValue(rejestr_char_nH[i]);
+        if (i > 7)
+            rejestr_natychmiastowy[i] = Character.getNumericValue(rejestr_char_nL[i - 8]);
 
-            int[] rejestr_natychmiastowy = new int[22];
-            char[] rejestr_char_nH = tekst[2][0].getText().toCharArray();
-            char[] rejestr_char_nL = tekst[2][1].getText().toCharArray();
-            for (int i = 0; i < 16; i++) {
-                if (i < 7)
-                    rejestr_natychmiastowy[i] = Character.getNumericValue(rejestr_char_nH[i]);
-                if (i > 7)
-                    rejestr_natychmiastowy[i] = Character.getNumericValue(rejestr_char_nL[i - 8]);
-
-                if (rejestr_natychmiastowy[i] == 1) {
-                    rb[1][i + 64].setSelected(true);
-                    rb[0][i + 64].setSelected(false);
-                } else {
-                    rb[1][i + 64].setSelected(false);
-                    rb[0][i + 64].setSelected(true);
-                }
+        if (rejestr_natychmiastowy[i] == 1) {
+            rb[1][i + 64].setSelected(true);
+            rb[0][i + 64].setSelected(false);
+        } else {
+            rb[1][i + 64].setSelected(false);
+            rb[0][i + 64].setSelected(true);
+        }
 
 
-            }
+    }
+}
+catch (ArrayIndexOutOfBoundsException exe){
+
+}
+             background.requestFocus(true);
         }
         else if(zrodlo==zRozkaz){
             String s= (String) cb.getSelectedItem();
@@ -582,13 +643,14 @@ public class Oknogl extends JFrame implements ActionListener {
             nr_komendy_zapis++;
 
 
-
+             background.requestFocus(true);
 
         }
 
         else if(zrodlo==zapisz_program){
             Wczytywanie w= new Wczytywanie(komendy);
             w.zapis();
+             background.requestFocus(true);
         }
 
         else if(zrodlo==wczytaj_program){
@@ -598,12 +660,13 @@ public class Oknogl extends JFrame implements ActionListener {
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
+             background.requestFocus(true);
         }
 
         else if(zrodlo==wykonaj_krok){
             komendy[nr_komendy_wykonanie].wykonaj_operacje();
             nr_komendy_wykonanie++;
-
+             background.setFocusable(true);
          }
 
         else if (zrodlo==wykonaj_program){
@@ -611,8 +674,11 @@ public class Oknogl extends JFrame implements ActionListener {
                 komendy[nr_komendy_wykonanie].wykonaj_operacje();
                 nr_komendy_wykonanie++;
             }
-
+             background.requestFocus(true);
          }
 
     }
+
+
+
 }

@@ -1,4 +1,13 @@
+
+
+
+
+import java.awt.*;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Stack;
 
 public class Zadanie implements Serializable {
 
@@ -8,12 +17,18 @@ public class Zadanie implements Serializable {
         static int decimalY;
         int decimalwej1;
         int decimalwej2;
+        int SP;
         String operacja;
         String pokonwersjiH="";
         String pokonwersjiL="";
         String zapisanyRozkaz;
         String s1;
         String s2;
+
+       // List<String> Stos= new ArrayList<String>();
+
+    Stack<String> stos= new Stack<String>();
+
 
 
         Zadanie(String s1, String s2, String operacja,String zapisanyRozkaz){
@@ -26,9 +41,43 @@ public class Zadanie implements Serializable {
         }
 
 
+        public void push(){
+            String rejestrpomocniczy="";
+
+
+
+            if(s1.equals("A")) {
+               rejestrpomocniczy=Oknogl.tekst[0][0].getText()+Oknogl.tekst[0][1].getText();
+                stos.push(rejestrpomocniczy);
+
+            }
+            else if(s1.equals("B")){
+                rejestrpomocniczy=Oknogl.tekst[1][0].getText()+Oknogl.tekst[1][1].getText();
+                stos.push(rejestrpomocniczy);
+            }
+            else if(s1.equals("C")){
+                rejestrpomocniczy=Oknogl.tekst[3][0].getText()+Oknogl.tekst[3][1].getText();
+                stos.push(rejestrpomocniczy);
+            }
+            else if(s1.equals("D")){
+                rejestrpomocniczy=Oknogl.tekst[4][0].getText()+Oknogl.tekst[4][1].getText();
+                stos.push(rejestrpomocniczy);
+            }
+
+        }
+
+        public void pop () throws ArrayIndexOutOfBoundsException{
+            Oknogl.textarea2.setText(stos.pop());
+        //Oknogl.textarea2.setText(Stos.get(0));
+
+
+        }
+
         public void wykonaj_operacje(){
-            if(s1.equals("A"))
-                decimalwej1=Main.okno.decimalA;
+            if(s1.equals("A")) {
+                decimalwej1 = Main.okno.decimalA;
+
+            }
             else if(s1.equals("B")){
                 decimalwej1=Main.okno.decimalB;
             }
@@ -74,6 +123,44 @@ public class Zadanie implements Serializable {
                 zamiana_na_binarny(decimalY);
                 konwersja();
                 przypisanie();
+            }
+
+            if(operacja.equals("PUSH")){
+                push();
+                Oknogl.textarea2.setText("Zapisano na stos"+ stos);
+            }
+            if(operacja.equals("POP")){
+                push();
+                pop();
+            }
+            if(operacja.equals("10H01H")){
+                Cursor cursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+                Oknogl.background.setCursor(cursor);
+            }
+            else {
+                Cursor cursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                Oknogl.background.setCursor(cursor);
+            }
+            if(operacja.equals("13H08H")){
+                Oknogl.textarea2.setText(Oknogl.DiskInfo());
+            }
+
+            if(operacja.equals("12H")){
+                long total = Runtime.getRuntime().maxMemory();
+                long used  = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                Oknogl.textarea2.setText("Maksymalna dostępna pamięć " + total/Oknogl.dataSize+"MB" +"\n" +"Używana pamięć RAM:" + used/Oknogl.dataSize+"MB" );
+            }
+            if(operacja.equals("10H02H")){
+                INT10H02HsetCursor_position();
+            }
+            if(operacja.equals("10H13H")){
+                INT10H13H_wypisz_String();
+            }
+            if(operacja.equals("13H00H")){
+                INT13H00H_zresetuj_pamiec();
+            }
+            if(operacja.equals("1AH00H")){
+                INT1AH00H_zczytaj_czas();
             }
 
         }
@@ -126,6 +213,37 @@ public class Zadanie implements Serializable {
     public void wypisz(){
         Main.okno.textarea.setText(Main.okno.textarea.getText()+"Komenda "+": Rejestr "+s1+"      "+operacja+"      Rejestr "+s2+"       na Rejestr "+zapisanyRozkaz+ "\n");
 
+    }
+
+    public void INT10H02HsetCursor_position(){
+        int positionX = decimalwej1;
+        int positionY = decimalwej2;
+        try {
+            Robot r = new Robot();
+            r.mouseMove(positionX,positionY);
+        } catch (AWTException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void INT10H13H_wypisz_String(){
+        char znak = (char) decimalwej1;
+        Oknogl.textarea2.setText(String.valueOf(znak));
+    }
+
+
+    public void INT13H00H_zresetuj_pamiec(){
+        for(int i=0;Main.okno.komendy[i]!=null;i++)
+            Main.okno.komendy[i]=null;
+        Main.okno.textarea.setText("");
+        Wczytywanie w = new Wczytywanie();
+        w.czyszczenie();
+        Oknogl.nr_komendy_wykonanie =0;
+        Oknogl.nr_komendy_zapis=0;
+    }
+    public void INT1AH00H_zczytaj_czas(){
+        Date d = new Date();
+        Oknogl.textarea2.setText(String.valueOf(d));
     }
 
     }
